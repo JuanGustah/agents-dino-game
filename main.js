@@ -1,3 +1,15 @@
+class Obstaculo {
+  cactusPosition;
+  cod;
+
+  constructor(cod, pos) {
+    this.cactusPosition = pos;
+    this.cod = cod;
+  }
+}
+
+const lista_de_cactus = []
+
 // Pegando elementos da DOM
 let game = document.getElementById("game");
 let bg = document.getElementById("background");
@@ -74,7 +86,8 @@ function generateCactus() {
 
     //variável de controle para fazer o cactus se mover
     //cacto começa no fim da tela
-    let cactusPosition = 640;
+    let cactusobj = new Obstaculo(randomTime, 640)
+    lista_de_cactus.push(cactusobj)
     //cria o cacto na estrutra html, mas não insere ainda
     let cactus = document.createElement("div");
     //define uma classe css para o cacto
@@ -92,19 +105,23 @@ function generateCactus() {
       //como esse intervalo está alheio ao loop principal, deve verificar também se o jogo já iniciou
       if (gameStarted) {
         //if para verificar se o cacto já saiu da área visivel da tela
-        if (cactusPosition < -30) {
+        if (cactusobj.cactusPosition < -30) {
           //para a movimentação do cacto
           clearInterval(cactusInterval);
           //remove o cacto da tela
           bg.removeChild(cactus);
+          const index = lista_de_cactus.findIndex(cacto => cacto.cod === cactusobj.cod);
+          if (index !== -1) {
+            lista_de_cactus.splice(index, 1);
+          }
         }
         //verifica se o dinossauro colidiu com o cacto
         //o cacto tem que estar na tela(>0)
         //o cacto tem que ter enconstado no eixo X do dino(<60)
         //o dinossauro tem que estar na altura do cacto(<35)
         else if (
-          cactusPosition > 0 &&
-          cactusPosition < 60 &&
+          cactusobj.cactusPosition > 0 &&
+          cactusobj.cactusPosition < 60 &&
           dinoPosition < 35
         ) {
           //para a movimentação do cacto
@@ -113,9 +130,9 @@ function generateCactus() {
           gameStarted = false;
         } else {
           //atualiza a posição do cacto
-          cactusPosition -= 6 * multiplier;
+          cactusobj.cactusPosition -= 6 * multiplier;
           //atualiza a posição do cacto na tela
-          cactus.style.left = `${cactusPosition}px`;
+          cactus.style.left = `${cactusobj.cactusPosition}px`;
         }
       }
     }, 30);
@@ -275,6 +292,7 @@ let gameLoop = setInterval(() => {
     updateScore();
     //gera um novo cacto
     generateCactus();
+    agente_reativo_simples();
   } else {
     //se o jogo não tiver iniciado, verifica se o jogo já foi executado alguma vez anteriormente (derrota)
     if (gameTouched) {
@@ -290,6 +308,44 @@ let gameLoop = setInterval(() => {
     }
   }
 }, 30);
+
+const regras = {
+  "obstaculo": "pular"
+}
+
+function agente_reativo_simples(percepcao) {
+  var estado = interpreta_entrada(percepcao)
+  var regra = regra_correspondente(estado, regras)  
+  console.log(estado+ " - " +regra); 
+  acao_da_regra(regra)
+  estado = '';
+  regra = '';
+  console.log(estado+ " - " +regra); 
+}
+
+function regra_correspondente(estado, regras) {
+  return regras[estado] !== undefined ? regras[estado] : null;
+}
+
+function interpreta_entrada(params) {
+  if (lista_de_cactus.length > 0) {
+    let cacto = lista_de_cactus[0].cactusPosition;
+    if (cacto < 100) {
+      return "obstaculo"
+    }
+    return "livre"
+  }
+}
+
+function acao_da_regra(regra) {
+  if(regra === "pular"){
+    acao();
+  }
+}
+
+function acao(params) {
+  jump();
+}
 
 //escuta todas as vezes que uma tecla é apertada
 window.addEventListener("keydown", gameCenter);
