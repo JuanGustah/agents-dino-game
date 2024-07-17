@@ -1,13 +1,10 @@
-import { Dino } from './Dino.js';
-
 export class Ambiente {
   lista_de_cactus;
-  dino;
+
   estado;
 
   constructor() {
     this.lista_de_cactus = []
-    this.dino = new Dino(0)
   }
 
   add_obstaculo(obstaculo) {
