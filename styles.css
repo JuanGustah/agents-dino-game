@@ -52,3 +52,10 @@ body {
   background-image: url(cactus.png);
   bottom: 5px;
 }
+
+#gameOver{
+  position: absolute;
+  margin: auto 0;
+  left:calc(50% - 65px);
+  top:75px;
+}
