@@ -7,11 +7,11 @@ let gameTouched = false;
 let gameStarted = false;
 
 let bgPos = 640;
-let gameRunning = false;
 
 let score = 0;
 let scoreTimeStamp = new Date().valueOf();
 
+let cactisIntervals = [];
 let cactusTimestamp = new Date().valueOf();
 let randomTime = Math.random() * 4000;
 
@@ -35,8 +35,8 @@ function generateCactus() {
     bg.appendChild(cactus);
 
     let cactusInterval = setInterval(() => {
-      if (gameStarted) {
-        if (cactusPosition < -30) {
+    if (gameStarted) {
+      if (cactusPosition < -30) {
           clearInterval(cactusInterval);
           bg.removeChild(cactus);
         } else if (
@@ -52,6 +52,7 @@ function generateCactus() {
         }
       }
     }, 30);
+    cactisIntervals.push(cactusInterval);
   }
 }
 function updateBackground() {
@@ -81,7 +82,7 @@ function jump() {
               dino.style.bottom = `${dinoPosition}px`;
             }
           }, 15);
-        }, 100);
+        }, 500);
       } else {
         dinoPosition += 8;
         dino.style.bottom = `${dinoPosition}px`;
@@ -96,6 +97,13 @@ function gameCenter(event) {
   if (!gameTouched) gameTouched = true;
 
   if (event.code == "Enter" && !gameStarted) {
+    document.getElementById("gameOver")?.remove();
+    Array.from(bg.children).forEach((node) => {
+      node.remove();
+    });
+    cactisIntervals.forEach((_,index)=>clearInterval(cactisIntervals[index]));
+    score=0;
+    scoreDOM.innerText = String(score).padStart(5, "0");
     gameStarted = true;
   }
 }
@@ -107,7 +115,13 @@ let gameLoop = setInterval(() => {
     generateCactus();
   }else{
     if(gameTouched){
+        let gameOver = document.createElement("p");
+        gameOver.innerText = "GAME OVER"
+        gameOver.id = "gameOver";
         
+        game.appendChild(gameOver);
+        gameStarted=false;
+        gameTouched=false;
     }
   }
 }, 30);
