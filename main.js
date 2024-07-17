@@ -1,60 +1,12 @@
-class Dino {
-  regra;
-  dinoPosition;
-
-  constructor(pos){
-    this.regra = 'correr'
-    this.dinoPosition = pos
-  }
-
-  resetar_regra(){
-    this.regra = '';
-  }
-}
-class Obstaculo {
-  cactusPosition;
-  cod;
-
-  constructor(cod, pos) {
-    this.cactusPosition = pos;
-    this.cod = cod;
-  }
-}
-class Ambiente {
-  lista_de_cactus;
-  dino;
-  estado;
-
-  constructor() {
-    this.lista_de_cactus = []
-  }
-
-  add_obstaculo(obstaculo) {
-    this.lista_de_cactus.push(obstaculo)
-  }
-
-  remove_first_obstaculo(obstaculo) {
-    const index = this.lista_de_cactus.findIndex(cacto => cacto.cod === obstaculo.cod);
-    if (index !== -1) {
-        this.lista_de_cactus.splice(index, 1);
-    }
-  }
-
-  reset(){
-    this.lista_de_cactus = [];
-  }
-
-  reseta_estado(){
-    this.estado = '';
-  }
-
-}
-
+import { Dino } from './Dino.js';
+import { Obstaculo } from './Obstaculo.js';
+import { Ambiente } from './Ambiente.js';
+import { AgenteSimples } from './AgenteSimples.js';
 
 // Pegando elementos da DOM
 let game = document.getElementById("game");
 let bg = document.getElementById("background");
-let dino = document.getElementById("dino");
+
 let scoreDOM = document.getElementById("score");
 
 //Defindo variáveis de controle do loop do jogo
@@ -96,12 +48,11 @@ let randomTime = Math.floor(
 );
 
 //variável de controle para que não seja possível pular quando já está pulando
-let isJumping = false;
+
 /*
  * variável de controle da posição do dinossauro no eixo y
  * não é necessário controlar o eixo x do dino porque ele não 'anda'
  */
-let dinoPosition = 0;
 
 let multiplier = 1;
 
@@ -228,8 +179,8 @@ function updateScore() {
  */
 function jump() {
   //if para impedir pulo no meio de outro pulo
-  if (!isJumping) {
-    isJumping = true;
+  if (!dinoObj.isJumping) {
+    dinoObj.isJumping = true;
     /*
      * como o dinossauro deve atualizar pixel a pixel,
      * é preciso fazer um interval que vai atualizar isso em uma qtd x de tempo.
@@ -251,20 +202,20 @@ function jump() {
               //limpar o intervalo para fazer ele parar de descer
               clearInterval(dinoDown);
               //permite ele poder pular novamente
-              isJumping = false;
+              dinoObj.isJumping = false;
             } else {
               //diminui a posição y do dinossauro
-              dinoObj.dinoPosition = dinoObj.dinoPosition - 2.25 < 5 ? 5 : dinoObj.dinoPosition - 2.25;
+              dinoObj.up();
               //atualiza a posição do dinossauro na DOM
-              dino.style.bottom = `${dinoObj.dinoPosition}px`;
+              
             }
           }, 6);
         }, 150);
       } else {
         //aumenta a posição y do dinossauro
-        dinoObj.dinoPosition += 2.25;
+        dinoObj.down();
         //atualiza a posição do dinossauro na DOM
-        dino.style.bottom = `${dinoObj.dinoPosition}px`;
+        
       }
     }, 6);
   }
@@ -324,6 +275,8 @@ function gameCenter(event) {
  */
 var ambiente = new Ambiente();
 var dinoObj = new Dino(0);
+var ag = new AgenteSimples();
+
 let gameLoop = setInterval(() => {
   //só executa caso o jogo tenha sido iniciado
   if (gameStarted) {
@@ -333,7 +286,7 @@ let gameLoop = setInterval(() => {
     updateScore();
     //gera um novo cacto
     generateCactus();
-    agente_reativo_simples(ambiente);
+    ag.agente_reativo_simples(ambiente, dinoObj);
   } else {
     //se o jogo não tiver iniciado, verifica se o jogo já foi executado alguma vez anteriormente (derrota)
     if (gameTouched) {
@@ -349,41 +302,6 @@ let gameLoop = setInterval(() => {
     }
   }
 }, 30);
-
-const regras = {
-  "obstaculo": "pular"
-}
-
-function agente_reativo_simples(percepcao) {
-  percepcao.estado = interpreta_entrada(percepcao)
-  dinoObj.regra = regra_correspondente(percepcao.estado, regras)  
-
-  acao_da_regra(dinoObj.regra);
-
-  percepcao.reseta_estado();
-  dinoObj.resetar_regra();
-
-}
-
-function regra_correspondente(estado, regras) {
-  return regras[estado] !== undefined ? regras[estado] : null;
-}
-//percepcao é lista de cactos ou seja o ambiente atual
-function interpreta_entrada(percepcao) {
-  if (percepcao.lista_de_cactus.length > 0) {
-    let cacto = percepcao.lista_de_cactus[0].cactusPosition;
-    if (cacto < 100) {
-      return "obstaculo"
-    }
-    return "livre"
-  }
-}
-
-function acao_da_regra(regra) {
-  if(regra === "pular"){
-    jump();
-  }
-}
 
 //escuta todas as vezes que uma tecla é apertada
 window.addEventListener("keydown", gameCenter);
