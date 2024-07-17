@@ -36,7 +36,8 @@ let cactisIntervals = [];
  */
 let cactusTimestamp = new Date().valueOf();
 //tempo entre o surgimento de um cacto e outro, aleatório igual o jogo base
-let randomTime = Math.random() * 4000;
+let randomTimeMax = 4000;
+let randomTime = Math.random() * randomTimeMax;
 
 //variável de controle para que não seja possível pular quando já está pulando
 let isJumping = false;
@@ -45,6 +46,8 @@ let isJumping = false;
  * não é necessário controlar o eixo x do dino porque ele não 'anda'
  */
 let dinoPosition = 0;
+
+let multiplier = 1.25;
 
 /*
  * função responsável por gerar novos cactos
@@ -60,7 +63,7 @@ function generateCactus() {
    */
   if (
     now - cactusTimestamp >= Math.floor(randomTime) &&
-    now - cactusTimestamp >= 800
+    now - cactusTimestamp >= 550
   ) {
     //atualiza o valor da última vez que foi executado, para verificação posterior
     cactusTimestamp = now;
@@ -108,7 +111,7 @@ function generateCactus() {
           gameStarted = false;
         } else {
           //atualiza a posição do cacto
-          cactusPosition -= 6;
+          cactusPosition -= 6 * multiplier;
           //atualiza a posição do cacto na tela
           cactus.style.left = `${cactusPosition}px`;
         }
@@ -123,7 +126,7 @@ function generateCactus() {
  */
 function updateBackground() {
   //diminui a variável de controle do background, fazendo ele ir para trás
-  bgPos -= 7;
+  bgPos -= 7 * multiplier;
   //atualiza a posição do background com o novo valor
   bg.style.backgroundPositionX = `${bgPos}px`;
 }
@@ -143,6 +146,19 @@ function updateScore() {
     scoreTimeStamp = now;
     //aumenta o score em 1
     score++;
+
+    if (score > 50 && multiplier < 1.5) {
+      multiplier = 1.5;
+      randomTimeMax = 3000;
+    }
+    if (score > 100 && multiplier < 1.75) {
+      multiplier = 1.75;
+      randomTimeMax = 2000;
+    }
+    if (score > 200 && multiplier < 2) {
+      randomTimeMax = 1000;
+      multiplier = 2;
+    }
     //atualiza o score com 5 casa decimais, ex: 00234
     scoreDOM.innerText = String(score).padStart(5, "0");
   }
@@ -153,6 +169,7 @@ function updateScore() {
 function jump() {
   //if para impedir pulo no meio de outro pulo
   if (!isJumping) {
+    isJumping = true;
     /*
      * como o dinossauro deve atualizar pixel a pixel,
      * é preciso fazer um interval que vai atualizar isso em uma qtd x de tempo.
@@ -168,29 +185,28 @@ function jump() {
         clearInterval(dinoJump);
         //timeout para fazer ele parar no ar um tempo, similar ao sleep()
         setTimeout(() => {
-          //intevalo para fazer ele descer
           let dinoDown = setInterval(() => {
             //if para não fazer ele descer infinitamente
-            if (dinoPosition <= 8) {
+            if (dinoPosition <= 5) {
               //limpar o intervalo para fazer ele parar de descer
               clearInterval(dinoDown);
               //permite ele poder pular novamente
               isJumping = false;
             } else {
               //diminui a posição y do dinossauro
-              dinoPosition -= 5;
+              dinoPosition = dinoPosition - 2 < 5 ? 5 : dinoPosition - 2;
               //atualiza a posição do dinossauro na DOM
               dino.style.bottom = `${dinoPosition}px`;
             }
-          }, 15);
-        }, 500);
+          }, 6);
+        }, 150);
       } else {
         //aumenta a posição y do dinossauro
-        dinoPosition += 8;
+        dinoPosition += 2;
         //atualiza a posição do dinossauro na DOM
         dino.style.bottom = `${dinoPosition}px`;
       }
-    }, 15);
+    }, 6);
   }
 }
 
@@ -224,6 +240,7 @@ function gameCenter(event) {
       cactisIntervals.forEach((_, index) =>
         clearInterval(cactisIntervals[index])
       );
+      multiplier = 1.25;
       //atualiza o valor inteiro do score
       score = 0;
       //atualiza o valor na tela do score
@@ -266,4 +283,4 @@ let gameLoop = setInterval(() => {
 }, 30);
 
 //escuta todas as vezes que uma tecla é apertada
-window.addEventListener("keyup", gameCenter);
+window.addEventListener("keydown", gameCenter);
