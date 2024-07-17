@@ -37,7 +37,10 @@ let cactisIntervals = [];
 let cactusTimestamp = new Date().valueOf();
 //tempo entre o surgimento de um cacto e outro, aleatório igual o jogo base
 let randomTimeMax = 4000;
-let randomTime = Math.random() * randomTimeMax;
+let randomTimeMin = 800;
+let randomTime = Math.floor(
+  Math.random() * (randomTimeMax - randomTimeMin) + randomTimeMin
+);
 
 //variável de controle para que não seja possível pular quando já está pulando
 let isJumping = false;
@@ -61,14 +64,13 @@ function generateCactus() {
    * o score deverá mudar apenas com o intervalo aleatório de no máximo 4s definido anteriormente
    * e no mínimo 800ms, para possibilitar ser possível de jogar e evitar bugs
    */
-  if (
-    now - cactusTimestamp >= Math.floor(randomTime) &&
-    now - cactusTimestamp >= 550
-  ) {
+  if (now - cactusTimestamp >= randomTime && now - cactusTimestamp >= 600) {
     //atualiza o valor da última vez que foi executado, para verificação posterior
     cactusTimestamp = now;
     //atualiza o valor de quando deverá ser executado novamente
-    randomTime = Math.random() * 4000;
+    randomTime = Math.floor(
+      Math.random() * (randomTimeMax - randomTimeMin) + randomTimeMin
+    );
 
     //variável de controle para fazer o cactus se mover
     //cacto começa no fim da tela
@@ -154,9 +156,11 @@ function updateScore() {
     if (score > 100 && multiplier < 1.75) {
       multiplier = 1.75;
       randomTimeMax = 2000;
+      randomTimeMin = 600;
     }
     if (score > 200 && multiplier < 2) {
       randomTimeMax = 1000;
+      randomTimeMin = 400;
       multiplier = 2;
     }
     //atualiza o score com 5 casa decimais, ex: 00234
@@ -194,7 +198,7 @@ function jump() {
               isJumping = false;
             } else {
               //diminui a posição y do dinossauro
-              dinoPosition = dinoPosition - 2 < 5 ? 5 : dinoPosition - 2;
+              dinoPosition = dinoPosition - 2.25 < 5 ? 5 : dinoPosition - 2.25;
               //atualiza a posição do dinossauro na DOM
               dino.style.bottom = `${dinoPosition}px`;
             }
@@ -202,7 +206,7 @@ function jump() {
         }, 150);
       } else {
         //aumenta a posição y do dinossauro
-        dinoPosition += 2;
+        dinoPosition += 2.25;
         //atualiza a posição do dinossauro na DOM
         dino.style.bottom = `${dinoPosition}px`;
       }
@@ -241,6 +245,11 @@ function gameCenter(event) {
         clearInterval(cactisIntervals[index])
       );
       multiplier = 1.25;
+      randomTimeMax = 4000;
+      randomTimeMin = 800;
+      randomTime = Math.floor(
+        Math.random() * (randomTimeMax - randomTimeMin) + randomTimeMin
+      );
       //atualiza o valor inteiro do score
       score = 0;
       //atualiza o valor na tela do score
