@@ -8,7 +8,7 @@ class Obstaculo {
   }
 }
 
-const lista_de_cactus = []
+var lista_de_cactus = []
 
 // Pegando elementos da DOM
 let game = document.getElementById("game");
@@ -62,7 +62,7 @@ let isJumping = false;
  */
 let dinoPosition = 0;
 
-let multiplier = 1.25;
+let multiplier = 1;
 
 /*
  * função responsável por gerar novos cactos
@@ -178,7 +178,7 @@ function updateScore() {
     if (score > 200 && multiplier < 2) {
       randomTimeMax = 1000;
       randomTimeMin = 400;
-      multiplier = 2;
+      multiplier = 3;
     }
     //atualiza o score com 5 casa decimais, ex: 00234
     scoreDOM.innerText = String(score).padStart(5, "0");
@@ -299,7 +299,7 @@ let gameLoop = setInterval(() => {
       let gameOver = document.createElement("p");
       gameOver.innerText = "GAME OVER";
       gameOver.id = "gameOver";
-
+      lista_de_cactus = []
       //adiciona a mensagem de gameover na tela
       game.appendChild(gameOver);
       //define as variáveis de controle para falso para poder executar do zero novamente
@@ -314,8 +314,12 @@ const regras = {
 }
 
 function agente_reativo_simples(percepcao) {
-  var estado = interpreta_entrada(percepcao)
-  var regra = regra_correspondente(estado, regras)  
+  var estado = '';
+  var regra = '';
+
+  estado = interpreta_entrada(percepcao)
+  regra = regra_correspondente(estado, regras)  
+
   console.log(estado+ " - " +regra); 
   acao_da_regra(regra)
   estado = '';
