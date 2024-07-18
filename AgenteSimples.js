@@ -20,7 +20,7 @@ export class AgenteSimples {
 
   interpreta_entrada(percepcao) {
     if (percepcao) {
-      let posicaoCacto = percepcao.offsetLeft;
+      let posicaoCacto = percepcao.posicaoCacto.offsetLeft;
       if (posicaoCacto < 100) {
         return "obstaculo";
       }
@@ -44,8 +44,10 @@ export class AgenteSimples {
 
 var ag = new AgenteSimples();
 
-setInterval(() => {
-  let p = sensor();
-  let ac = ag.agente_reativo_simples(p);
-  atuador(ac);
-}, 30);
+// setInterval(() => {
+//   let p = sensor();
+//   if (p) {
+//     let ac = ag.agente_reativo_simples(p);
+//     atuador(ac);
+//   }
+// }, 30);

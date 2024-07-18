@@ -1,19 +1,13 @@
 export class Dino {
-  // regra;
   dinoPosition;
   displayObject;
   isJumping;
 
   constructor(pos) {
-    // this.regra = "correr";
     this.isJumping = false;
     this.dinoPosition = pos;
     this.displayObject = document.getElementById("dino");
   }
-
-  // resetar_regra() {
-  //   this.regra = "";
-  // }
 
   up() {
     this.dinoPosition =

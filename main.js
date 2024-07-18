@@ -1,7 +1,7 @@
 import { Dino } from "./Dino.js";
 import { Obstaculo } from "./Obstaculo.js";
-import { Ambiente } from "./Ambiente.js";
 import { AgenteSimples } from "./AgenteSimples.js";
+import { AgenteBaseadoModelo } from "./AgenteBaseadoModelo.js";
 
 let game = document.getElementById("game");
 let bg = document.getElementById("background");
@@ -51,7 +51,6 @@ function generateCactus() {
         if (cactusobj.cactusPosition < -30) {
           clearInterval(cactusInterval);
           bg.removeChild(cactus);
-          // ambiente.remove_first_obstaculo(cactusobj);
         } else if (
           cactusobj.cactusPosition > 0 &&
           cactusobj.cactusPosition < 60 &&
