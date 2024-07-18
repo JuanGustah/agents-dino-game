@@ -1,42 +1,51 @@
+import { atuador } from "./atuador.js";
+import { sensor } from "./sensor.js";
+
 export class AgenteSimples {
-  regras; 
-  
+  regras;
+
   constructor() {
     this.regras = {
-      "obstaculo": "pular"
-    }
- 
+      obstaculo: "pular",
+      livre: "nada",
+    };
   }
 
-  agente_reativo_simples(ambiente, dinoObj) {
-    ambiente.estado = this.interpreta_entrada(ambiente)
-    dinoObj.regra = this.regra_correspondente(ambiente.estado, this.regras)  
-  
-    this.acao_da_regra(dinoObj);
-  
-    ambiente.reseta_estado();
-    dinoObj.resetar_regra();
-  
+  agente_reativo_simples(percepcao) {
+    let estado = this.interpreta_entrada(percepcao);
+    let regra = this.regra_correspondente(estado, this.regras);
+    let acao = this.acao_da_regra(regra);
+    return acao;
+  }
+
+  interpreta_entrada(percepcao) {
+    if (percepcao) {
+      let posicaoCacto = percepcao.offsetLeft;
+      if (posicaoCacto < 100) {
+        return "obstaculo";
+      }
+      return "livre";
+    }
+    return "livre";
   }
 
   regra_correspondente(estado, regras) {
-    return this.regras[estado] !== undefined ? this.regras[estado] : null;
+    return regras[estado];
   }
-  
-  //ambiente é lista de cactos ou seja o ambiente atual
-  interpreta_entrada(ambiente) {
-    if (ambiente.lista_de_cactus.length > 0) {
-      let cacto = ambiente.lista_de_cactus[0].cactusPosition;
-      if (cacto < 100) {
-        return "obstaculo"
-      }
-      return "livre"
-    }
-  }
-  
-  acao_da_regra(dinoObj) {
-    if(dinoObj.regra === "pular"){
-      dinoObj.jump();
+
+  acao_da_regra(regra) {
+    if (regra === "pular") {
+      return 1;
+    } else {
+      return 0;
     }
   }
 }
+
+var ag = new AgenteSimples();
+
+setInterval(() => {
+  let p = sensor();
+  let ac = ag.agente_reativo_simples(p);
+  atuador(ac);
+}, 30);
