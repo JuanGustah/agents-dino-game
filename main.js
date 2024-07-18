@@ -1,15 +1,23 @@
+import { Dino } from './Dino.js';
+import { Obstaculo } from './Obstaculo.js';
+import { Ambiente } from './Ambiente.js';
+import { AgenteSimples } from './AgenteSimples.js';
+
+export let gameStatus = {
+  touched: false,
+  //variável que define se o jogo já está atualmente em execução
+  started: false,
+}
+
 // Pegando elementos da DOM
 let game = document.getElementById("game");
 let bg = document.getElementById("background");
-let dino = document.getElementById("dino");
 let scoreDOM = document.getElementById("score");
 
 //Defindo variáveis de controle do loop do jogo
 
 //variável que define se o jogo já foi iniciado anterioremente
-let gameTouched = false;
-//variável que define se o jogo já está atualmente em execução
-let gameStarted = false;
+
 
 /*
  * variável que define a posição atual do background
@@ -43,14 +51,13 @@ let randomTime = Math.floor(
 );
 
 //variável de controle para que não seja possível pular quando já está pulando
-let isJumping = false;
+
 /*
  * variável de controle da posição do dinossauro no eixo y
  * não é necessário controlar o eixo x do dino porque ele não 'anda'
  */
-let dinoPosition = 0;
 
-let multiplier = 1.25;
+let multiplier = 1;
 
 /*
  * função responsável por gerar novos cactos
@@ -74,7 +81,8 @@ function generateCactus() {
 
     //variável de controle para fazer o cactus se mover
     //cacto começa no fim da tela
-    let cactusPosition = 640;
+    let cactusobj = new Obstaculo(randomTime, 640)
+    ambiente.add_obstaculo(cactusobj)
     //cria o cacto na estrutra html, mas não insere ainda
     let cactus = document.createElement("div");
     //define uma classe css para o cacto
@@ -90,32 +98,34 @@ function generateCactus() {
      */
     let cactusInterval = setInterval(() => {
       //como esse intervalo está alheio ao loop principal, deve verificar também se o jogo já iniciou
-      if (gameStarted) {
+      if (gameStatus.started) {
         //if para verificar se o cacto já saiu da área visivel da tela
-        if (cactusPosition < -30) {
+        if (cactusobj.cactusPosition < -30) {
           //para a movimentação do cacto
           clearInterval(cactusInterval);
           //remove o cacto da tela
           bg.removeChild(cactus);
+          ambiente.remove_first_obstaculo(cactusobj)
+        
         }
         //verifica se o dinossauro colidiu com o cacto
         //o cacto tem que estar na tela(>0)
         //o cacto tem que ter enconstado no eixo X do dino(<60)
         //o dinossauro tem que estar na altura do cacto(<35)
         else if (
-          cactusPosition > 0 &&
-          cactusPosition < 60 &&
-          dinoPosition < 35
+          cactusobj.cactusPosition > 0 &&
+          cactusobj.cactusPosition < 60 &&
+          dinoObj.dinoPosition < 35
         ) {
           //para a movimentação do cacto
           clearInterval(cactusInterval);
           //finaliza o jogo(derrota)
-          gameStarted = false;
+          gameStatus.started = false;
         } else {
           //atualiza a posição do cacto
-          cactusPosition -= 6 * multiplier;
+          cactusobj.cactusPosition -= 6 * multiplier;
           //atualiza a posição do cacto na tela
-          cactus.style.left = `${cactusPosition}px`;
+          cactus.style.left = `${cactusobj.cactusPosition}px`;
         }
       }
     }, 30);
@@ -161,7 +171,7 @@ function updateScore() {
     if (score > 200 && multiplier < 2) {
       randomTimeMax = 1000;
       randomTimeMin = 400;
-      multiplier = 2;
+      multiplier = 3;
     }
     //atualiza o score com 5 casa decimais, ex: 00234
     scoreDOM.innerText = String(score).padStart(5, "0");
@@ -170,50 +180,6 @@ function updateScore() {
 /*
  * função responsável por fazer o dinossauro pular
  */
-function jump() {
-  //if para impedir pulo no meio de outro pulo
-  if (!isJumping) {
-    isJumping = true;
-    /*
-     * como o dinossauro deve atualizar pixel a pixel,
-     * é preciso fazer um interval que vai atualizar isso em uma qtd x de tempo.
-     * Além disso, o pulo é a subida, pausa e descida do dinossauro. Para cada etapa, um intervalo.
-     * Nesse caso, a cada 15ms o dinossauro sobe 8px (números arbitrários)
-     * Pausa por 15ms no ar (números arbitrários)
-     * Por fim, a cada 15ms o dinossauro desce 5px (números arbitrários)
-     */
-    let dinoJump = setInterval(() => {
-      //if para não fazer ele subir infinitamente
-      if (dinoPosition >= 80) {
-        //limpar o intervalo para fazer ele parar de subir
-        clearInterval(dinoJump);
-        //timeout para fazer ele parar no ar um tempo, similar ao sleep()
-        setTimeout(() => {
-          let dinoDown = setInterval(() => {
-            //if para não fazer ele descer infinitamente
-            if (dinoPosition <= 5) {
-              //limpar o intervalo para fazer ele parar de descer
-              clearInterval(dinoDown);
-              //permite ele poder pular novamente
-              isJumping = false;
-            } else {
-              //diminui a posição y do dinossauro
-              dinoPosition = dinoPosition - 2.25 < 5 ? 5 : dinoPosition - 2.25;
-              //atualiza a posição do dinossauro na DOM
-              dino.style.bottom = `${dinoPosition}px`;
-            }
-          }, 6);
-        }, 150);
-      } else {
-        //aumenta a posição y do dinossauro
-        dinoPosition += 2.25;
-        //atualiza a posição do dinossauro na DOM
-        dino.style.bottom = `${dinoPosition}px`;
-      }
-    }, 6);
-  }
-}
-
 /*
  * função responsável por comandar todas os eventos de tecla que a aplicação recebe
  */
@@ -223,17 +189,17 @@ function gameCenter(event) {
 
   //permite pular com barra de espaço
   if (event.code == "Space") {
-    jump();
+    //jump();
     return;
   }
 
   //comanda o jogo pelo enter
   if (event.code == "Enter") {
     //define que se o jogo não foi executado antes, agora foi
-    if (!gameTouched) gameTouched = true;
+    if (!gameStatus.touched) game.touched = true;
 
     //define que se o jogo não está executando antes, inicializa
-    if (!gameStarted) {
+    if (!gameStatus.started) {
       //remove o título de gameover, caso exista (por isso esse trecho: ?.)
       document.getElementById("gameOver")?.remove();
       //remove todo os cactus que foram inseridos
@@ -255,7 +221,7 @@ function gameCenter(event) {
       //atualiza o valor na tela do score
       scoreDOM.innerText = String(score).padStart(5, "0");
       //define o jogo como iniciado
-      gameStarted = true;
+      gameStatus.started = true;
     }
   }
 }
@@ -266,27 +232,32 @@ function gameCenter(event) {
  * atualiza os estados através de um loop contínuo.
  * Nesse caso, o "tick" de gameplay ocorre a cada 30ms
  */
+var ambiente = new Ambiente();
+var dinoObj = new Dino(0);
+var ag = new AgenteSimples();
+
 let gameLoop = setInterval(() => {
   //só executa caso o jogo tenha sido iniciado
-  if (gameStarted) {
+  if (gameStatus.started) {
     //atualiza o bg
     updateBackground();
     //atualiza o score
     updateScore();
     //gera um novo cacto
     generateCactus();
+    ag.agente_reativo_simples(ambiente, dinoObj);
   } else {
     //se o jogo não tiver iniciado, verifica se o jogo já foi executado alguma vez anteriormente (derrota)
-    if (gameTouched) {
+    if (gameStatus.touched) {
       let gameOver = document.createElement("p");
       gameOver.innerText = "GAME OVER";
       gameOver.id = "gameOver";
-
+      ambiente.reset()
       //adiciona a mensagem de gameover na tela
       game.appendChild(gameOver);
       //define as variáveis de controle para falso para poder executar do zero novamente
-      gameStarted = false;
-      gameTouched = false;
+      gameStatus.started = false;
+      gameStatus.touched = false;
     }
   }
 }, 30);
